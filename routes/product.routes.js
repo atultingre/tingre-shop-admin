@@ -9,6 +9,6 @@ const productRouter = express.Router();
 
 productRouter.post("/add", addProduct);
 productRouter.post("/remove", removeProduct);
-productRouter.post("/list", listProduct);
+productRouter.get("/list", listProduct);
 
 export default productRouter;

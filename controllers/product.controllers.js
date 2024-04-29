@@ -20,7 +20,15 @@ const addProduct = async (req, res) => {
 };
 
 // all Product list
-const listProduct = async (req, res) => {};
+const listProduct = async (req, res) => {
+  try {
+    const product = await productModel.find({});
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.log('error: ', error);
+    res.json({ success: false, message: "Error" });
+  }
+};
 
 const updateProduct = async (req, res) => {};
 
