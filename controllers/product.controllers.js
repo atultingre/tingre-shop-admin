@@ -25,13 +25,22 @@ const listProduct = async (req, res) => {
     const product = await productModel.find({});
     res.json({ success: true, data: product });
   } catch (error) {
-    console.log('error: ', error);
+    console.log("error: ", error);
     res.json({ success: false, message: "Error" });
   }
 };
 
 const updateProduct = async (req, res) => {};
 
-const removeProduct = async (req, res) => {};
+const removeProduct = async (req, res) => {
+  try {
+    // const product = await productModel.findById(req.body.id);
+    await productModel.findByIdAndDelete(req.body.id);
+    res.json({ success: true, message: "Product Removed" });
+  } catch (error) {
+    console.log("error: ", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
 
 export { addProduct, listProduct, updateProduct, removeProduct };
