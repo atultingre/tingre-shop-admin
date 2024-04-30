@@ -1,11 +1,9 @@
 import userModel from "../models/user.model.js";
 
 // add items to user cart
-
-
 const addToCart = async (req, res) => {
   try {
-    console.log('req.body.userId: ', req.body.userId);
+    console.log("req.body.userId: ", req.body.userId);
     let userData = await userModel.findById(req.body.userId);
     let cartData = await userData.cartData;
 
@@ -27,6 +25,15 @@ const addToCart = async (req, res) => {
 const removeFromCart = async (req, res) => {};
 
 // Get user cart data
-const getCart = async (req, res) => {};
+const getCart = async (req, res) => {
+  try {
+    let userData = await userModel.findById(req.body.userId);
+    let cartData = await userData.cartData;
+    res.json({ success: true, cartData });
+  } catch (error) {
+    console.log("error: ", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
 
 export { addToCart, removeFromCart, getCart };
