@@ -4,6 +4,19 @@ import { storage } from "../middlewares/firebase.js";
 // add Product
 const addProduct = async (req, res) => {
   try {
+    // Input validation
+    if (
+      !req.body.name ||
+      !req.body.description ||
+      !req.body.price ||
+      !req.body.category ||
+      !req.body.image
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
     // Create a new product document with the image URL
     const product = new productModel({
       name: req.body.name,
@@ -14,21 +27,23 @@ const addProduct = async (req, res) => {
     });
 
     await product.save();
-    res.json({ success: true, message: "Food Added", product });
+    res
+      .status(201)
+      .json({ success: true, message: "Product added successfully", product });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error adding product:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 // Get all Product list
 const listProduct = async (req, res) => {
   try {
-    const product = await productModel.find({});
-    res.json({ success: true, data: product });
+    const products = await productModel.find({});
+    res.status(200).json({ success: true, data: products });
   } catch (error) {
-    console.log("error: ", error);
-    res.json({ success: false, message: "Error" });
+    console.error("Error listing products:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -37,7 +52,13 @@ const updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
     const updates = req.body;
-    console.log("updates: ", updates);
+
+    // Input validation
+    if (!productId || Object.keys(updates).length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid request" });
+    }
 
     // Check if the product exists
     const existingProduct = await productModel.findById(productId);
@@ -65,10 +86,9 @@ const updateProduct = async (req, res) => {
 
     // Save the updated product
     await existingProduct.save();
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Product Updated",
+      message: "Product updated successfully",
       product: existingProduct,
     });
   } catch (error) {
@@ -80,7 +100,20 @@ const updateProduct = async (req, res) => {
 // Remove product
 const removeProduct = async (req, res) => {
   try {
-    const product = await productModel.findById(req.body.id);
+    const productId = req.body.id;
+    // Input validation
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Product ID is required" });
+    }
+
+    const product = await productModel.findById(productId);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
 
     // Get the full path of the file in Firebase Storage from the product document
     const fullPath = product.image;
@@ -90,19 +123,23 @@ const removeProduct = async (req, res) => {
     await storageRef.delete();
 
     // Remove the product from MongoDB
-    await productModel.findByIdAndDelete(req.body.id);
+    await productModel.findByIdAndDelete(productId);
 
-    res.json({ success: true, message: "Product Removed" });
+    res
+      .status(200)
+      .json({ success: true, message: "Product removed successfully" });
   } catch (error) {
     if (error.code === "storage/object-not-found") {
-      console.log("Object not found in Firebase Storage.");
+      console.error("Object not found in Firebase Storage.");
       res.status(404).json({
         success: false,
-        message: "Object not found in Firebase Storage.",
+        message: "Object not found in Firebase Storage",
       });
     } else {
-      console.log("Error:", error);
-      res.status(500).json({ success: false, message: "Error" });
+      console.error("Error removing product:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
     }
   }
 };
