@@ -2,7 +2,6 @@ import orderModel from "../models/order.model.js";
 import userModel from "../models/user.model.js";
 import "dotenv/config";
 
-
 // placing user order from frontend
 const placeOrder = async (req, res) => {
   const frontend_url = process.env.FRONTEND_URL;
@@ -38,7 +37,15 @@ const userOrders = async (req, res) => {
 };
 
 // Listing orders for admin panel
-const listOrders = async (req, res) => {};
+const listOrders = async (req, res) => {
+  try {
+    const orders = await orderModel.find({});
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.log("error: ", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
 
 // api for updating order status
 const updateStatus = async (req, res) => {};
