@@ -29,9 +29,14 @@ const loginUser = async (req, res) => {
     }
 
     const token = createToken(user._id);
-    return res
-      .status(200)
-      .json({ success: true, message: "Login successful", token });
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
   } catch (error) {
     console.error("Error:", error);
     return res
@@ -91,15 +96,21 @@ const registerUser = async (req, res) => {
       name: name,
       email: email,
       password: hashedPassword,
+      isAdmin: false,
     });
 
     const user = await newUser.save();
 
     const token = createToken(user._id);
 
-    res
-      .status(201)
-      .json({ success: true, message: "User registered successfully", token });
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      token,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
