@@ -52,14 +52,14 @@ const createToken = (id) => {
 
 // register user
 const registerUser = async (req, res) => {
-  const { name, password, email } = req.body;
+  const { name, password, email, phone } = req.body;
 
   try {
     // Check if name, email, and password are provided
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and password are required",
+        message: "Name, email, phone and password are required",
       });
     }
 
@@ -95,6 +95,7 @@ const registerUser = async (req, res) => {
     const newUser = new userModel({
       name: name,
       email: email,
+      phone: phone,
       password: hashedPassword,
       isAdmin: false,
     });
@@ -117,4 +118,70 @@ const registerUser = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser };
+// reset password
+const resetPassword = async (req, res) => {
+  const { email, phone, newPassword, confirmPassword } = req.body;
+
+  try {
+    // Check if email, phone, newPassword, and confirmPassword are provided
+    if (!email || !phone || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Email, phone, new password, and confirm password are required",
+      });
+    }
+
+    // Find user by email
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check if phone matches the user's phone
+    if (user.phone !== phone) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Phone does not match" });
+    }
+
+    // Validate new password
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a strong password (at least 8 characters)",
+      });
+    }
+
+    // Check if new password matches the confirmed password
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password and confirm password do not match",
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export { loginUser, registerUser, resetPassword };
